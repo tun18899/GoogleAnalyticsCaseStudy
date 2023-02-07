@@ -1,0 +1,398 @@
+---
+title: "GoogleDataAnalyticsCaseStudy"
+author: "Thinh Phan"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+
+# DivvyBikeCase
+## Introduction
+-Scenario: I am a junior data analyst working in the marketing analyst team at Cyclistic, a bike-share company in Chicago. Lily Moreno, the director of marketing team asked us: "How do annual members and casual riders use Cyclistic bikes differently?", so we can design a new marketing strategy to convert riders into annual members. Our team will create report with compelling data insight and professional data visualization.
+
+-Cyclistic has a flexibility pricing plans: single-ride passes, full-day passes, and annual memberships. Customers who purchase single-ride or full-day passes are referred to as casual riders. Customers who purchase annual memberships are Cyclistic members.
+   **Note: Cyclistic is a fictional company and the dataset is used for completing the study case **
+
+## Characters and teams
+-Cyclistic: A bike-share program in Chicago that offering reclining bikes, hand tricycles, and cargo bikes.
+
+-Lily Moreno: The director of marketing and  manager, who is responsible for advertise bike-share program.
+
+-Cyclistic marketing analytics team: A team of data analysts who are responsible for collecting, analyzing, and reporting data that helps guide Cyclistic marketing strategy. 
+
+-Cyclistic executive team: a detail-oriented team that will decide whether to approve the recommend marketing program.
+
+  <center>**To answer the question, we will stick to data analytics process, according to Google(ask,prepare,process,analyze,share,act)**</center>
+
+
+## Ask
+-Our business task is "How do annual members and casual riders use Cyclistic bikes differently?". At this step since we don't have data yet, using SMART (specific, measure, action-oriented, relevant, time-bound) to ask Lily(stakeholder) why does she think that would be a good idea. 
+
+-Top question would be "top 5 features difference", "Most important difference", "Is it worth it?", "What will happen in near future?".
+
+-To solve this problem, determine how long do member/casual use bike a day and what day is that would be a key factor, since we want to track each type of riders closely day by day. 
+
+## Prepare
+-Now we have data, we can begin to analyze and identify trends  [All Cyclistics trip data in previous 12 months](https://divvy-tripdata.s3.amazonaws.com/index.html)
+
+-Above  is an html files with all excel sheets, we will choose last 12 months in 2022
+
+-This dataset is appropriate to the purpose of the study case, and has been make available by Motivate International Inc. under this [license](https://ride.divvybikes.com/data-license-agreement)
+
+-To ensure data integrity, make sure to convert values into correct data types, and most importantly check **spelling** after we add another new fields.
+
+-Since we having data now and verify, we can move to next step of the process.
+
+-**Warning**: brace yourself because we will have to deal with large dataset and make sure to save after every step since it is very easy to crash.
+
+## Process
+
+-I used Mac, so after analyzing excel sheet I have to convert from .numbers to .csv to further analyze in R 
+
+-To make sure data is clean and integrity, data types must be correct, and use conditional formatting to fill out blank cell,also sort out columns especially
+"membercasual" columns since we need them to solve business task
+
+-I follow steps that was suggested, by calculated "ride_length" column by subtracting end_time with start_time, then format into hh:mm:ss, and "day_of_week" column by convert start_time into weekday.
+
+## Analysis
+
+-Now we will begin to analyze data, after we calculate "ride_length" and "day_of_week" column, sort them out, and check out data format(day_of_week is"weekday" and ride_length is "time").
+
+-Then I began to create a pivot tables, to calculate average ride_length for member and casual, day_by_week and number_of_rides.
+
+-After analyzed all 12 excels sheet, the ride_id columns has the first letter either numeric or characters, same as start_station_id and end_station_id. There is also situation that rider used bike for few seconds or none(Lily we need to talk about this?)
+
+
+-Below are code chunks were used for this project (in R)
+
+```{r warning=FALSE,message=FALSE}
+# load library
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+#read excel files
+m1_2022 <- read_csv("202201-divvy-tripdata.csv")
+m2_2022 <- read_csv("202202-divvy-tripdata.csv")
+m3_2022 <- read_csv("202203-divvy-tripdata.csv")
+m4_2022 <- read_csv("202204-divvy-tripdata.csv")
+m5_2022 <- read_csv("202205-divvy-tripdata.csv")
+m6_2022 <- read_csv("202206-divvy-tripdata.csv")
+m7_2022 <- read_csv("202207-divvy-tripdata.csv")
+m8_2022 <- read_csv("202208-divvy-tripdata.csv")
+m9_2022 <- read_csv("202209-divvy-tripdata.csv")
+m10_2022 <- read_csv("202210-divvy-tripdata.csv")
+m11_2022 <- read_csv("202211-divvy-tripdata.csv")
+m12_2022 <- read_csv("202212-divvy-tripdata.csv")
+
+
+#show column names
+colnames(m1_2022)
+colnames(m2_2022)
+colnames(m3_2022)
+colnames(m4_2022)
+colnames(m5_2022)
+colnames(m6_2022)
+colnames(m7_2022)
+colnames(m8_2022)
+colnames(m9_2022)
+colnames(m10_2022)
+colnames(m11_2022)
+colnames(m12_2022)
+
+#rename columns
+(m1_2022 <- rename(m1_2022
+                   , trip_id = ride_id
+                   ,bikeid = rideable_type
+                   , start_time  = started_at 
+                   , end_time  = ended_at 
+                   ,from_station_name = start_station_name 
+                   , from_station_id =  start_station_id 
+                   , to_station_name = end_station_name 
+                   , to_station_id = end_station_id 
+                   , usertype = member_casual ))
+
+(m2_2022 <- rename(m2_2022
+                   , trip_id = ride_id
+                   ,bikeid = rideable_type
+                   , start_time  = started_at 
+                   , end_time  = ended_at 
+                   ,from_station_name = start_station_name 
+                   , from_station_id =  start_station_id 
+                   , to_station_name = end_station_name 
+                   , to_station_id = end_station_id 
+                   , usertype = member_casual ))
+
+(m3_2022 <- rename(m3_2022
+                   , trip_id = ride_id
+                   ,  bikeid = rideable_type
+                   , start_time  = started_at 
+                   , end_time  = ended_at 
+                   ,from_station_name = start_station_name 
+                   , from_station_id =  start_station_id 
+                   , to_station_name = end_station_name 
+                   , to_station_id = end_station_id 
+                   , usertype = member_casual ))
+(m4_2022 <- rename(m4_2022
+                   , trip_id = ride_id
+                   ,  bikeid = rideable_type
+                   , start_time  = started_at 
+                   , end_time  = ended_at 
+                   ,from_station_name = start_station_name 
+                   , from_station_id =  start_station_id 
+                   , to_station_name = end_station_name 
+                   , to_station_id = end_station_id 
+                   , usertype = member_casual ))
+(m5_2022 <- rename(m5_2022
+                   , trip_id = ride_id
+                   ,  bikeid = rideable_type
+                   , start_time  = started_at 
+                   , end_time  = ended_at 
+                   ,from_station_name = start_station_name 
+                   , from_station_id =  start_station_id 
+                   , to_station_name = end_station_name 
+                   , to_station_id = end_station_id 
+                   , usertype = member_casual ))
+(m6_2022 <- rename(m6_2022
+                   , trip_id = ride_id
+                   ,  bikeid = rideable_type
+                   , start_time  = started_at 
+                   , end_time  = ended_at 
+                   ,from_station_name = start_station_name 
+                   , from_station_id =  start_station_id 
+                   , to_station_name = end_station_name 
+                   , to_station_id = end_station_id 
+                   , usertype = member_casual ))
+(m7_2022 <- rename(m7_2022
+                   , trip_id = ride_id
+                   ,  bikeid = rideable_type
+                   , start_time  = started_at 
+                   , end_time  = ended_at 
+                   ,from_station_name = start_station_name 
+                   , from_station_id =  start_station_id 
+                   , to_station_name = end_station_name 
+                   , to_station_id = end_station_id 
+                   , usertype = member_casual ))
+(m8_2022 <- rename(m8_2022
+                   , trip_id = ride_id
+                   ,  bikeid = rideable_type
+                   , start_time  = started_at 
+                   , end_time  = ended_at 
+                   ,from_station_name = start_station_name 
+                   , from_station_id =  start_station_id 
+                   , to_station_name = end_station_name 
+                   , to_station_id = end_station_id 
+                   , usertype = member_casual ))
+(m9_2022 <- rename(m9_2022
+                   , trip_id = ride_id
+                   ,  bikeid = rideable_type
+                   , start_time  = started_at 
+                   , end_time  = ended_at 
+                   ,from_station_name = start_station_name 
+                   , from_station_id =  start_station_id 
+                   , to_station_name = end_station_name 
+                   , to_station_id = end_station_id 
+                   , usertype = member_casual ))
+(m10_2022 <- rename(m10_2022
+                   , trip_id = ride_id
+                   ,  bikeid = rideable_type
+                   , start_time  = started_at 
+                   , end_time  = ended_at 
+                   ,from_station_name = start_station_name 
+                   , from_station_id =  start_station_id 
+                   , to_station_name = end_station_name 
+                   , to_station_id = end_station_id 
+                   , usertype = member_casual ))
+(m11_2022 <- rename(m11_2022
+                   , trip_id = ride_id
+                   ,  bikeid = rideable_type
+                   , start_time  = started_at 
+                   , end_time  = ended_at 
+                   ,from_station_name = start_station_name 
+                   , from_station_id =  start_station_id 
+                   , to_station_name = end_station_name 
+                   , to_station_id = end_station_id 
+                   , usertype = member_casual ))
+(m12_2022 <- rename(m12_2022
+                   , trip_id = ride_id
+                   ,  bikeid = rideable_type
+                   , start_time  = started_at 
+                   , end_time  = ended_at 
+                   ,from_station_name = start_station_name 
+                   , from_station_id =  start_station_id 
+                   , to_station_name = end_station_name 
+                   , to_station_id = end_station_id 
+                   , usertype = member_casual ))
+
+# define structure
+str(m1_2022)
+str(m2_2022)
+str(m3_2022)
+str(m4_2022)
+str(m5_2022)
+str(m6_2022)
+str(m7_2022)
+str(m8_2022)
+str(m9_2022)
+str(m10_2022)
+str(m11_2022)
+str(m12_2022)
+
+
+# change trip_id, bikeid, from_station_id,to_station_id to char type since we need to combine them
+m1_2022 <-  mutate(m1_2022, trip_id = as.character(trip_id)
+                   ,bikeid = as.character(bikeid), from_station_id = as.character(from_station_id), to_station_id= as.character(to_station_id)) 
+m2_2022 <-  mutate(m2_2022, trip_id = as.character(trip_id)
+                   ,bikeid = as.character(bikeid), from_station_id = as.character(from_station_id), to_station_id= as.character(to_station_id)) 
+m3_2022 <-  mutate(m3_2022, trip_id = as.character(trip_id)
+                   ,bikeid = as.character(bikeid), from_station_id = as.character(from_station_id), to_station_id= as.character(to_station_id)) 
+m4_2022 <-  mutate(m4_2022, trip_id = as.character(trip_id)
+                   ,bikeid = as.character(bikeid), from_station_id = as.character(from_station_id), to_station_id= as.character(to_station_id))
+m5_2022 <-  mutate(m5_2022, trip_id = as.character(trip_id)
+                   ,bikeid = as.character(bikeid), from_station_id = as.character(from_station_id), to_station_id= as.character(to_station_id)) 
+m6_2022 <-  mutate(m6_2022, trip_id = as.character(trip_id)
+                   ,bikeid = as.character(bikeid), from_station_id = as.character(from_station_id), to_station_id= as.character(to_station_id)) 
+m7_2022 <-  mutate(m7_2022, trip_id = as.character(trip_id)
+                   ,bikeid = as.character(bikeid), from_station_id = as.character(from_station_id), to_station_id= as.character(to_station_id)) 
+m8_2022 <-  mutate(m8_2022, trip_id = as.character(trip_id)
+                   ,bikeid = as.character(bikeid), from_station_id = as.character(from_station_id), to_station_id= as.character(to_station_id))
+m9_2022 <-  mutate(m9_2022, trip_id = as.character(trip_id)
+                   ,bikeid = as.character(bikeid), from_station_id = as.character(from_station_id), to_station_id= as.character(to_station_id)) 
+m10_2022 <-  mutate(m10_2022, trip_id = as.character(trip_id)
+                   ,bikeid = as.character(bikeid), from_station_id = as.character(from_station_id), to_station_id= as.character(to_station_id)) 
+m11_2022 <-  mutate(m11_2022, trip_id = as.character(trip_id)
+                   ,bikeid = as.character(bikeid), from_station_id = as.character(from_station_id), to_station_id= as.character(to_station_id)) 
+m12_2022 <-  mutate(m12_2022, trip_id = as.character(trip_id)
+                   ,bikeid = as.character(bikeid), from_station_id = as.character(from_station_id), to_station_id= as.character(to_station_id)) 
+
+# combine all rows and turn into all_trips dataframe
+all_trips <- bind_rows(m1_2022,m2_2022,m3_2022,m4_2022
+                       ,m5_2022,m6_2022,m7_2022,m8_2022
+                       ,m9_2022,m10_2022,m11_2022,m12_2022)
+
+# Remove star_lat,star_lng,end_lat,end_lng (dont need for analysis )
+all_trips <- all_trips %>%  
+  select(-c(start_lat, start_lng, end_lat, end_lng))
+
+colnames(all_trips) # all columns names of all_trips
+nrow(all_trips) #show numbers of rows 
+dim(all_trips)  #Dimensions of the data frame
+head(all_trips) #head of all trips
+tail(all_trips) #tails of all trips
+str(all_trips) #structure and types
+summary(all_trips) #summary statistics
+
+
+table(all_trips$usertype) # check all members and casual riders
+
+#create columns to separate date, month, day, year, day_of_week
+all_trips$date <- as.Date(all_trips$start_time) #The default format is yyyy-mm-dd
+all_trips$month <- format(as.Date(all_trips$date), "%m")
+all_trips$day <- format(as.Date(all_trips$date), "%d")
+all_trips$year <- format(as.Date(all_trips$date), "%Y")
+all_trips$day_of_week <- format(as.Date(all_trips$date), "%A")
+
+# calculate ride length by getting end-time substract start_time
+all_trips$ride_length <- difftime(all_trips$end_time,all_trips$start_time)
+
+#look at structure 
+str(all_trips)
+
+is.factor(all_trips$ride_length) # check if this is factor
+all_trips$ride_length <- as.numeric(as.character(all_trips$ride_length)) # convert to numeric ride_length
+is.numeric(all_trips$ride_length) # check if it numeric
+
+# create another dataframe due to ride_length negative and empty from_station_name
+all_trips_v2 <- all_trips[!(all_trips$from_station_name == "HQ QR" | all_trips$ride_length<0),]
+
+
+str(all_trips_v2) #look at structure
+
+summary(all_trips_v2$ride_length) #summary of all_trips_v2
+
+# compare members and casual users
+aggregate(all_trips_v2$ride_length ~ all_trips_v2$usertype, FUN = mean)
+aggregate(all_trips_v2$ride_length ~ all_trips_v2$usertype, FUN = median)
+aggregate(all_trips_v2$ride_length ~ all_trips_v2$usertype, FUN = max)
+aggregate(all_trips_v2$ride_length ~ all_trips_v2$usertype, FUN = min)
+
+# average ride time by each day member vs casual members
+aggregate(all_trips_v2$ride_length ~ all_trips_v2$usertype + all_trips_v2$day_of_week, FUN = mean)
+
+#rearrange day
+all_trips_v2$day_of_week <- ordered(all_trips_v2$day_of_week, levels=c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
+
+# Run this code again but its on order
+aggregate(all_trips_v2$ride_length ~ all_trips_v2$usertype + all_trips_v2$day_of_week, FUN = mean)
+
+```
+
+
+## Share
+
+-Pivot tables for 7 days a week with all number_of_rides and average ride_length and total in excel 
+![excel](bike202201.png)
+![excel](bike202202.png)
+![excel](bike202203.png)
+![excel](bike202204.png)
+![excel](bike202205.png)
+![excel](bike202206.png)
+![excel](bike202207.png)
+![excel](bike202208.png)
+![excel](bike202209.png)
+![excel](bike202210.png)
+![excel](bike202211.png)
+![excel](bike202212.png)
+-Summary of usertype and ride_length in last 12 months in Tableau
+![Tableau](Tableau.png)
+
+-Summary statistics of ride_length in last 12 months in SQL
+![SQL](SQLQuery.png)
+
+-Relationship between usertype with number_of_rides, average_duration in R
+```{r }
+# visualization for usertype with number_of_rides 
+all_trips_v2 %>% 
+  na.omit(all_trips_v2) %>% # get rid of NA
+  mutate(weekday = wday(start_time, label = TRUE)) %>%  # create weekday field
+  group_by(usertype, weekday) %>%  # group usertype and weekday
+  summarise(number_of_rides = n()						
+            ,average_duration = mean(ride_length)) %>% 		# calculate number of rides and duration
+  arrange(usertype, weekday)%>%  #sort usertype and weekday
+  # create a graph
+ggplot(aes(x = weekday, y = number_of_rides, fill = usertype)) +
+  geom_col(position = "dodge")
+
+
+#visualization for average duration
+all_trips_v2 %>% 
+  na.omit(all_trips_v2) %>% 
+  mutate(weekday = wday(start_time, label = TRUE)) %>% 
+  group_by(usertype, weekday) %>% 
+  summarise(number_of_rides = n()
+            ,average_duration = mean(ride_length)) %>% 
+  arrange(usertype, weekday)  %>% 
+  # create graph
+  ggplot(aes(x = weekday, y = average_duration, fill = usertype)) +
+  geom_col(position = "dodge")
+```
+
+## Act
+-After a lenghtly investigation and based  on data we have, our conclusion would be: Member riders have more rides and less ride time than casual. The most number of rides are during first and midweek, while the most average ride time are on weekend.
+
+-My top 3 recommendations are:
+
+   + Since we have more members riders than casual ones, we don't really need to do anything else since everyone is doing great, I would rather recommend giving annual anniversary gift to members in our program, so they could stay longer.
+   
+   + Because casual have spent more time on bike, I would recommend a first-time purchases bonus, so they can have all benefits from long-time membership with lower fee for first year
+   
+   + To wrap up, many people have days off on weekend, so create a meeting/club that member/casual people can join together, to make connection and create a healthy lifestyle. The more casual joins, the more chance they would likely to buy a membership.
+   
+
+## The end
+
+
+
